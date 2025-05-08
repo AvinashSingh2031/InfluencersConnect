@@ -1,99 +1,131 @@
 {% extends 'layout.html' %}
 {% block title %}Influencer Dashboard{% endblock %}
 {% block content %}
-<style>
-    body {
-        background-color: #f5f3ff;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        color: #333;
-    }
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 
-    .container h1 {
-        text-align: center;
-        color: #8361bd;
-        font-size: 32px;
-        font-weight: bold;
-        margin-top: 40px;
-    }
+<div class="container mt-5 influencer-dashboard">
+    <h1 class="text-center gradient-heading mb-3">✨ Influencer Dashboard</h1>
+    <p class="text-center text-muted mb-5">Welcome, <strong>{{ current_user.username }}</strong>!</p>
 
-    .myblock {
-        background-color: #e8eaf6;
-        border-radius: 35px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        margin-top: 30px;
-    }
-
-    .myblock h3 {
-        font-size: 24px;
-        color: #926fcd;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
-    .list-group-item {
-        background-color: #fff;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .list-group-item h5 {
-        font-size: 20px;
-        color: #7e57c2;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .list-group-item p {
-        font-size: 16px;
-        color: #555;
-        margin-bottom: 5px;
-    }
-
-    .no-requests {
-        font-size: 18px;
-        color: #555;
-        text-align: center;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-    }
-</style>
-
-<div class="container">
-    <h1>Influencer Dashboard</h1>
-    <p class="text-center">Welcome, {{ current_user.username }}!</p>
-    
-    <div class="myblock">
-        <h3>My Ad Requests</h3>
+    <div class="dashboard-section shadow-sm rounded p-4 bg-light">
+        <h3 class="text-center text-secondary mb-4">📩 My Ad Requests</h3>
         {% if ad_requests %}
-            <ul class="list-group">
+            <ul class="list-group custom-list">
                 {% for request in ad_requests %}
-                    <li class="list-group-item">
-                        <h5>Campaign: {{ request.campaign.title }}</h5>
-                        <p><strong>Sponsor:</strong> {{ request.campaign.sponsor.username }}</p>
-                        <p><strong>Status:</strong> {{ request.status }}</p>
-                        <p><strong>Created At:</strong> {{ request.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                    </li>
+                <li class="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row">
+                    <div>
+                        <strong class="text-dark">Campaign:</strong> 
+                        <a href="#" class="campaign-link" data-toggle="modal" data-target="#campaignModal{{ request.campaign.id }}">
+                            {{ request.campaign.title }}
+                        </a>
+                        <br>
+                        <strong>Status:</strong> 
+                        <span class="badge badge-pill 
+                            {% if request.status == 'accepted' %}badge-success
+                            {% elif request.status == 'rejected' %}badge-danger
+                            {% elif request.status == 'pending' %}badge-warning
+                            {% else %}badge-secondary{% endif %}">
+                            {{ request.status|capitalize }}
+                        </span>
+                        <br>
+                        <strong>Created At:</strong> {{ request.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% if request.terms %}
+                        <br>
+                        <strong>Negotiation Terms:</strong> {{ request.terms }}
+                        {% endif %}
+                    </div>
+                </li>
+
+                <!-- Modal -->
+                <div class="modal fade" id="campaignModal{{ request.campaign.id }}" tabindex="-1" role="dialog">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Campaign Details</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                          <span>&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <h4 class="text-primary">{{ request.campaign.title }}</h4>
+                        <p><strong>Description:</strong> {{ request.campaign.description or "No description provided" }}</p>
+                        <p><strong>Budget:</strong> ${{ "%.2f"|format(request.campaign.budget) }}</p>
+                        <p><strong>Category:</strong> {{ request.campaign.category }}</p>
+                        <p><strong>Created:</strong> {{ request.campaign.created_at.strftime('%Y-%m-%d') }}</p>
+                        <hr>
+                        <h5>Sponsor Information</h5>
+                        <p><strong>Name:</strong> {{ request.campaign.sponsor.username }}</p>
+                        {% if request.campaign.sponsor.sponsor %}
+                        <p><strong>Company:</strong> {{ request.campaign.sponsor.sponsor.company_name or "N/A" }}</p>
+                        <p><strong>Industry:</strong> {{ request.campaign.sponsor.sponsor.industry or "N/A" }}</p>
+                        <p><strong>Email:</strong> {{ request.campaign.sponsor.sponsor.email or "N/A" }}</p>
+                        <p><strong>Campaign Goals:</strong> {{ request.campaign.sponsor.sponsor.campaign_goals or "N/A" }}</p>
+                        {% endif %}
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 {% endfor %}
             </ul>
         {% else %}
-            <p class="no-requests">You have not sent any ad requests.</p>
+            <p class="text-center text-muted">🚫 You have not sent any ad requests yet.</p>
         {% endif %}
     </div>
 </div>
-{% endblock %} 
 
+<!-- Optional custom styles -->
+<style>
+    .influencer-dashboard {
+        font-family: 'Segoe UI', sans-serif;
+    }
 
+    .gradient-heading {
+        background: linear-gradient(90deg, #8b68c7, #5ec6ca);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+    }
 
+    .dashboard-section {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        animation: fadeIn 0.8s ease;
+    }
 
+    .campaign-link {
+        color: #6f42c1;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
 
+    .campaign-link:hover {
+        color: #563d7c;
+        text-decoration: underline;
+    }
 
+    .custom-list .list-group-item {
+        background: #f9f9f9;
+        border: 1px solid #e2e2e2;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+        transition: box-shadow 0.3s ease;
+    }
 
+    .custom-list .list-group-item:hover {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
 
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(20px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+</style>
 
-
+<!-- Bootstrap & jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

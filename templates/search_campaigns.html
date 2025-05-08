@@ -1,35 +1,37 @@
 {% extends 'layout.html' %}
 {% block content %}
-<div class="container">
-    <h2 class="mb-4">Search for Campaigns</h2>
-    
-    <form action="{{ url_for('search_campaigns') }}" method="GET" class="search-form mb-4">
-        <div class="form-group">
-            <label for="category">Category</label>
-            <input type="text" id="category" name="category" class="form-control" style="max-width: 500px;"> <!-- Adjusted width -->
+<div class="campaign-search-container container py-5">
+    <h2 class="mb-4 display-5 text-center text-gradient">Discover Campaigns</h2>
+
+    <form action="{{ url_for('search_campaigns') }}" method="GET" class="search-form row g-3 justify-content-center mb-5 p-4 shadow rounded bg-light">
+        <div class="col-md-5">
+            <label for="category" class="form-label fw-semibold">Category</label>
+            <input type="text" id="category" name="category" class="form-control custom-input" placeholder="e.g. Fashion, Tech...">
         </div>
-        <div class="form-group">
-            <label for="budget">Budget</label>
-            <input type="number" id="budget" name="budget" class="form-control" style="max-width: 500px;"> <!-- Adjusted width -->
+        <div class="col-md-5">
+            <label for="budget" class="form-label fw-semibold">Budget</label>
+            <input type="number" id="budget" name="budget" class="form-control custom-input" placeholder="Minimum budget">
         </div>
-        <button type="submit" class="btn btn-primary">Search</button>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-lg custom-btn mt-3 px-5">🔍 Search Campaigns</button>
+        </div>
     </form>
-    
+
     {% if campaigns %}
-        <h3 class="mb-4">Campaigns</h3>
-        <div class="row">
+        <h3 class="mb-4 text-center"> AI Recommended Campaigns</h3>
+        <div class="row g-4">
             {% for campaign in campaigns %}
-                <div class="col-md-4 mb-4">
-                    <div class="card campaign-card">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ campaign.title }}</h5>
-                            <p class="card-text"><strong>Description:</strong> {{ campaign.description }}</p>
-                            <p class="card-text"><strong>Budget:</strong> ${{ campaign.budget }}</p>
-                            <p class="card-text"><strong>Category:</strong> {{ campaign.category }}</p>
-                            <p class="card-text"><strong>Created At:</strong> {{ campaign.created_at.strftime('%Y-%m-%d') }}</p>
-                            <form action="{{ url_for('send_ad_request', campaign_id=campaign.id) }}" method="POST">
+                <div class="col-md-4">
+                    <div class="card campaign-card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2 text-primary fw-bold">{{ campaign.title }}</h5>
+                            <p class="card-text text-muted mb-1"><strong>Description:</strong> {{ campaign.description }}</p>
+                            <p class="card-text mb-1"><strong>Budget:</strong> ${{ campaign.budget }}</p>
+                            <p class="card-text mb-1"><strong>Category:</strong> {{ campaign.category }}</p>
+                            <p class="card-text mb-3"><strong>Created At:</strong> {{ campaign.created_at.strftime('%Y-%m-%d') }}</p>
+                            <form action="{{ url_for('send_ad_request', campaign_id=campaign.id) }}" method="POST" class="mt-auto">
                                 <input type="hidden" name="influencer_id" value="{{ current_user.id }}">
-                                <button type="submit" class="btn btn-primary">Send Ad Request</button>
+                                <button type="submit" class="btn custom-btn w-100">📩 Send Ad Request</button>
                             </form>
                         </div>
                     </div>
@@ -37,83 +39,65 @@
             {% endfor %}
         </div>
     {% else %}
-        <p>No campaigns found matching your criteria.</p>
+        <p class="text-center text-muted mt-5">🚫 No campaigns found matching your criteria.</p>
     {% endif %}
 </div>
 
 <style>
-    .container {
-        max-width: 1500px; /* Increased max width for the container */
+    .text-gradient {
+        background: linear-gradient(90deg, #8b68c7, #5ec6ca);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
-    h2, h3 {
-        font-size: 1.75rem;
-        color: #333;
-        font-weight: 600;
-    }
-
-    .search-form {
-        margin-bottom: 2rem;
-    }
-
-    .search-form .form-group {
-        margin-bottom: 1rem;
-    }
-
-    .form-control {
+    .custom-input {
         border-radius: 0.5rem;
         border: 1px solid #ced4da;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        max-width: 100%;
-        width: 100%;
+        transition: all 0.3s ease-in-out;
     }
 
-    .form-control:focus {
+    .custom-input:focus {
         border-color: #8b68c7;
-        box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(139, 104, 199, 0.25);
     }
 
-    .btn-primary {
-        background-color: #8564be;
-        border-color: #8b68c7;
+    .custom-btn {
+        background-color: #8b68c7;
+        color: white;
+        font-weight: 500;
+        border: none;
+        transition: all 0.3s ease-in-out;
         border-radius: 0.5rem;
-        font-size: 1rem;
-        padding: 0.5rem 1rem;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
-    .btn-primary:hover {
-        background-color: #815ac4;
-        border-color: #8b68c7;
-    }
-
-    .card {
-        border-radius: 0.5rem;
-        border: 1px solid #ced4da;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.3s ease, transform 0.3s ease; /* Added transform for scaling effect */
-        width: 100%; /* Ensures cards take the full width of their column */
-        min-width: 300px; /* Sets a minimum width for the cards */
-    }
-
-    .card:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        transform: scale(1.03); /* Slightly scale up on hover */
+    .custom-btn:hover {
+        background-color: #7a59b0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .campaign-card {
-        overflow: hidden;
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: #fff;
     }
 
-    .row {
-        margin-left: -0.75rem;
-        margin-right: -0.75rem;
+    .campaign-card:hover {
+        transform: scale(1.03);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
     }
 
-    .col-md-4 {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+    .search-form {
+        background: #f9f9ff;
+    }
+
+    @media (max-width: 768px) {
+        .search-form .col-md-5 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
     }
 </style>
 {% endblock %}
