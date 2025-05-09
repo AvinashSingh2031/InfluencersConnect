@@ -1,32 +1,3 @@
-# import pandas as pd
-# import random
-
-# # Generate a sample dataset with 500 influencers
-# categories = ['Tech', 'Fashion', 'Gaming', 'Fitness', 'Travel', 'Food']
-# niches = ['Smartphones', 'Luxury Wear', 'PC Gaming', 'Weight Loss', 'Backpacking', 'Vegan Recipes']
-
-# data = []
-# for i in range(500):
-#     category = random.choice(categories)
-#     niche = random.choice(niches)
-#     reach = random.randint(5000, 500000)  # Between 5K and 500K followers
-#     engagement_rate = round(random.uniform(0.5, 10.0), 2)  # Between 0.5% and 10%
-#     data.append([category, niche, reach, engagement_rate])
-
-# df = pd.DataFrame(data, columns=['category', 'niche', 'reach', 'engagement_rate'])
-
-# # Save to CSV
-# df.to_csv("synthetic_influencer_data.csv", index=False)
-
-# print("Synthetic dataset created successfully!")
-
-
-
-
-
-
-
-
 import pandas as pd
 import random
 from faker import Faker

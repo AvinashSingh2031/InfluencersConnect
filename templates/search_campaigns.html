@@ -1,103 +1,138 @@
-{% extends 'layout.html' %}
-{% block content %}
-<div class="campaign-search-container container py-5">
-    <h2 class="mb-4 display-5 text-center text-gradient">Discover Campaigns</h2>
+<!DOCTYPE html>
+<html lang="en" class="transition duration-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Campaigns</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            dark: '#1e1e2f',
+            light: '#f9fafb',
+            card: 'rgba(255, 255, 255, 0.7)',
+          },
+          backdropBlur: {
+            xs: '2px',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .glass {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.65);
+    }
+    .dark .glass {
+      background: rgba(30, 30, 47, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-light text-slate-800 dark:bg-dark dark:text-white transition duration-300">
 
-    <form action="{{ url_for('search_campaigns') }}" method="GET" class="search-form row g-3 justify-content-center mb-5 p-4 shadow rounded bg-light">
-        <div class="col-md-5">
-            <label for="category" class="form-label fw-semibold">Category</label>
-            <input type="text" id="category" name="category" class="form-control custom-input" placeholder="e.g. Fashion, Tech...">
-        </div>
-        <div class="col-md-5">
-            <label for="budget" class="form-label fw-semibold">Budget</label>
-            <input type="number" id="budget" name="budget" class="form-control custom-input" placeholder="Minimum budget">
-        </div>
-        <div class="col-12 text-center">
-            <button type="submit" class="btn btn-lg custom-btn mt-3 px-5">🔍 Search Campaigns</button>
-        </div>
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-lg px-6 py-8">
+    <h1 class="text-2xl font-bold text-primary">InfluencerHub</h1>
+    <nav class="mt-8 space-y-4 text-slate-700 dark:text-slate-300">
+      <a href="{{ url_for('influencer_dashboard') }}" class="block hover:text-primary font-medium">Dashboard</a>
+      <a href="{{ url_for('search_campaigns') }}" class="block hover:text-primary font-medium">Search Campaigns</a>
+      <!-- <a href="{{ url_for('ad_requests') }}" class="block hover:text-primary font-medium">My Requests</a> -->
+      <a href="{{ url_for('update_profile') }}" class="block hover:text-primary font-medium">Edit Profile</a>
+      <button onclick="toggleDarkMode()" class="text-sm text-slate-500 hover:text-primary">Toggle Dark Mode</button>
+      <a href="{{ url_for('logout') }}" class="block text-red-500 hover:text-red-600 font-medium mt-10">Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 px-8 py-10">
+    <h2 class="text-3xl font-bold mb-6">Search for Campaigns</h2>
+
+    <!-- Search Form -->
+    <form action="{{ url_for('search_campaigns') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <div>
+        <label for="category" class="block text-sm font-semibold mb-1">Category</label>
+        <input type="text" id="category" name="category" placeholder="e.g. Tech, Fitness"
+               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary transition" />
+      </div>
+      <div>
+        <label for="budget" class="block text-sm font-semibold mb-1">Budget</label>
+        <input type="number" id="budget" name="budget" placeholder="e.g. 500"
+               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary transition" />
+      </div>
+      <div class="md:col-span-2">
+        <button type="submit" class="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-indigo-700 transition">
+          Search
+        </button>
+      </div>
     </form>
 
+    <!-- Campaign Results -->
     {% if campaigns %}
-        <h3 class="mb-4 text-center"> AI Recommended Campaigns</h3>
-        <div class="row g-4">
-            {% for campaign in campaigns %}
-                <div class="col-md-4">
-                    <div class="card campaign-card h-100">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title mb-2 text-primary fw-bold">{{ campaign.title }}</h5>
-                            <p class="card-text text-muted mb-1"><strong>Description:</strong> {{ campaign.description }}</p>
-                            <p class="card-text mb-1"><strong>Budget:</strong> ${{ campaign.budget }}</p>
-                            <p class="card-text mb-1"><strong>Category:</strong> {{ campaign.category }}</p>
-                            <p class="card-text mb-3"><strong>Created At:</strong> {{ campaign.created_at.strftime('%Y-%m-%d') }}</p>
-                            <form action="{{ url_for('send_ad_request', campaign_id=campaign.id) }}" method="POST" class="mt-auto">
-                                <input type="hidden" name="influencer_id" value="{{ current_user.id }}">
-                                <button type="submit" class="btn custom-btn w-100">📩 Send Ad Request</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+    <h3 class="text-2xl font-semibold mb-6">Matching Campaigns</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for campaign in campaigns %}
+      <div class="glass rounded-xl p-5 shadow hover:shadow-xl transition">
+        <h4 class="text-xl font-bold text-primary mb-2">{{ campaign.title }}</h4>
+        <p class="text-sm mb-1"><strong>Description:</strong> {{ campaign.description }}</p>
+        <p class="text-sm mb-1"><strong>Budget:</strong> ${{ campaign.budget }}</p>
+        <p class="text-sm mb-1"><strong>Category:</strong> {{ campaign.category }}</p>
+        <p class="text-sm mb-3"><strong>Created At:</strong> {{ campaign.created_at.strftime('%Y-%m-%d') }}</p>
+        <button type="button"
+                class="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-indigo-700 transition"
+                onclick="document.getElementById('termsModal{{ campaign.id }}').showModal()">
+          Send Ad Request
+        </button>
+      </div>
+
+      <!-- Native Dialog Modal -->
+      <dialog id="termsModal{{ campaign.id }}" class="w-full max-w-lg rounded-lg shadow-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-0">
+        <form method="POST" action="{{ url_for('send_ad_request', campaign_id=campaign.id) }}">
+          <div class="p-6">
+            <h5 class="text-xl font-bold mb-4">Terms & Conditions</h5>
+            <p class="text-sm mb-4">
+              By sending this ad request, you agree to collaborate according to the sponsor's campaign requirements and platform policies. All content must comply with community guidelines and be delivered on time.
+            </p>
+            <input type="hidden" name="influencer_id" value="{{ current_user.id }}">
+            <input type="hidden" name="terms_text" value="By sending this ad request, you agree to collaborate according to the sponsor's campaign requirements and platform policies.">
+            <div class="flex items-center gap-2 mb-6">
+              <input class="form-check-input" type="checkbox" id="acceptTerms{{ campaign.id }}" name="accepted_terms" required />
+              <label for="acceptTerms{{ campaign.id }}" class="text-sm">I accept the Terms & Conditions</label>
+            </div>
+          </div>
+          <div class="flex justify-end gap-4 bg-slate-100 dark:bg-slate-800 px-6 py-4">
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Send Request</button>
+            <button type="button" onclick="document.getElementById('termsModal{{ campaign.id }}').close()" class="px-4 py-2 bg-slate-400 text-white rounded hover:bg-slate-500">Cancel</button>
+          </div>
+        </form>
+      </dialog>
+      {% endfor %}
+    </div>
     {% else %}
-        <p class="text-center text-muted mt-5">🚫 No campaigns found matching your criteria.</p>
+    <p class="text-slate-500 dark:text-slate-400 mt-10 text-center text-lg">No campaigns found matching your criteria.</p>
     {% endif %}
+  </main>
 </div>
 
-<style>
-    .text-gradient {
-        background: linear-gradient(90deg, #8b68c7, #5ec6ca);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+<!-- Dark Mode Logic -->
+<script>
+  const root = document.documentElement;
+  function toggleDarkMode() {
+    root.classList.toggle('dark');
+    localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('theme') === 'dark') {
+    root.classList.add('dark');
+  }
+</script>
 
-    .custom-input {
-        border-radius: 0.5rem;
-        border: 1px solid #ced4da;
-        transition: all 0.3s ease-in-out;
-    }
-
-    .custom-input:focus {
-        border-color: #8b68c7;
-        box-shadow: 0 0 0 0.2rem rgba(139, 104, 199, 0.25);
-    }
-
-    .custom-btn {
-        background-color: #8b68c7;
-        color: white;
-        font-weight: 500;
-        border: none;
-        transition: all 0.3s ease-in-out;
-        border-radius: 0.5rem;
-    }
-
-    .custom-btn:hover {
-        background-color: #7a59b0;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    .campaign-card {
-        border: none;
-        border-radius: 1rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background: #fff;
-    }
-
-    .campaign-card:hover {
-        transform: scale(1.03);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .search-form {
-        background: #f9f9ff;
-    }
-
-    @media (max-width: 768px) {
-        .search-form .col-md-5 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-    }
-</style>
-{% endblock %}
+</body>
+</html>

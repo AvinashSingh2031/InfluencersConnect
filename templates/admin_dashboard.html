@@ -1,249 +1,222 @@
-{% extends 'layout.html' %}
+<!DOCTYPE html>
+<html lang="en" class="transition duration-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            dark: '#1e1e2f',
+            light: '#f9fafb',
+          },
+          backdropBlur: {
+            xs: '2px',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.65);
+    }
+    .dark .glass {
+      background: rgba(30, 30, 47, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-light text-slate-800 dark:bg-dark dark:text-white transition duration-300">
 
-{% block navbar %}
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Admin Dashboard</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('flag_users') }}">Flag Users</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('flag_campaigns') }}">Flag Campaigns</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                </li>
-            </ul>
-        </div>
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-lg px-6 py-8">
+    <h1 class="text-2xl font-bold text-primary">Admin Panel</h1>
+    <nav class="mt-8 space-y-4 text-slate-700 dark:text-slate-300">
+      <a href="#" class="block hover:text-primary font-medium">Dashboard</a>
+      <a href="#users" class="block hover:text-primary font-medium">Users</a>
+      <a href="#campaigns" class="block hover:text-primary font-medium">Campaigns</a>
+      <a href="{{ url_for('flag_users') }}" class="block hover:text-primary font-medium">Flag Users</a>
+      <a href="{{ url_for('flag_campaigns') }}" class="block hover:text-primary font-medium">Flag Campaigns</a>
+      <a href="#activity" class="block hover:text-primary font-medium">Logs</a>
+      <button onclick="toggleDarkMode()" class="text-sm text-slate-500 hover:text-primary">Toggle Dark Mode</button>
+      <a href="{{ url_for('logout') }}" class="block text-red-500 hover:text-red-600 font-medium mt-10">Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 px-10 py-10">
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold">Welcome, Admin 👨‍💼</h2>
+      <p class="text-slate-500 dark:text-slate-300 mt-1">System overview and user moderation</p>
     </div>
-</nav>
-{% endblock %}
 
-{% block content %}
-<style>
-    
-    body {
-        background-color: #f8f9fa;
-        background: radial-gradient(circle, #63489a, #e2e6ea);
-    }
-
-    .container {
-        width: 1500px;
-        margin-top: 100px; /* Adjust top margin to avoid navbar overlap */
-        margin-left: 90px;
-    }
-
-    h2 {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 20px;
-    }
-
-    .card {
-        border-radius: 0.75rem;
-        transition: transform 0.2s;
-    }
-
-    .card:hover {
-        transform: scale(1.05);
-    }
-
-    .card-title {
-        font-size: 1.25rem;
-        color: #007bff;
-    }
-
-    .card-text {
-        font-size: 1.125rem;
-    }
-
-    .list-group-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-    }
-
-    .list-group-item-danger {
-        background-color: #f8d7da; /* Light red background for flagged items */
-    }
-
-    .badge-danger {
-        background-color: #dc3545; /* Red for flagged badge */
-    }
-
-    .btn-warning {
-        margin-left: 5px;
-        background-color: #ffc107;
-        border-color: #ffc107;
-    }
-
-    .btn-warning:hover {
-        background-color: #e0a800;
-        border-color: #d39e00;
-    }
-
-    input[type="text"] {
-        border-radius: 0.2rem;
-        border: 1px solid #ced4da;
-        padding: 5px;
-        width: auto;
-    }
-
-    input[type="text"]:focus {
-        border-color: #80bdff;
-        outline: 0;
-        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-    }
-</style>
-
-<div class="container mt-5 pt-4" style="max-width: 1200px;">
-    <h2 class="mb-4">Admin Dashboard</h2>
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <!-- All Users -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">All Users ({{ users|length }})</h5>
-                    {% if users %}
-                        <ul class="list-group">
-                            {% for user in users %}
-                                <li class="list-group-item {% if user.is_flagged %}list-group-item-danger{% endif %}">
-                                    <span>{{ user.username }} ({{ user.role }})</span>
-                                    {% if user.is_flagged %}
-                                        <span class="badge badge-danger">Flagged: {{ user.flag_reason }}</span>
-                                    {% else %}
-                                        <form action="{{ url_for('flag_user', user_id=user.id) }}" method="POST" style="display: flex; align-items: center;">
-                                            <input type="text" name="reason" placeholder="Reason for flagging" required>
-                                            <button type="submit" class="btn btn-warning btn-sm">Flag User</button>
-                                        </form>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No users found.</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- All Campaigns -->
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">All Campaigns ({{ campaigns|length }})</h5>
-                    {% if campaigns %}
-                        <ul class="list-group">
-                            {% for campaign in campaigns %}
-                                <li class="list-group-item {% if campaign.is_flagged %}list-group-item-danger{% endif %}">
-                                    <span>{{ campaign.title }}</span>
-                                    {% if campaign.is_flagged %}
-                                        <span class="badge badge-danger">Flagged: {{ campaign.flag_reason }}</span>
-                                    {% else %}
-                                        <form action="{{ url_for('flag_campaign', campaign_id=campaign.id) }}" method="POST" style="display: flex; align-items: center;">
-                                            <input type="text" name="reason" placeholder="Reason for flagging" required>
-                                            <button type="submit" class="btn btn-warning btn-sm">Flag Campaign</button>
-                                        </form>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="text-muted">No campaigns found.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="row">
-                <!-- Active Users -->
-                <div class="col-md-12 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">Active Users</h5>
-                            <p class="card-text">{{ active_users }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Campaign Statistics -->
-                <div class="col-md-12 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">Campaigns Overview</h5>
-                            <p class="card-text">Total Campaigns: {{ total_campaigns }}</p>
-                            <p class="card-text">Public Campaigns: {{ public_campaigns }}</p>
-                            <p class="card-text">Private Campaigns: {{ private_campaigns }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ad Requests -->
-                <div class="col-md-12 mb-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">Ad Requests</h5>
-                            <p class="card-text">Total Ad Requests: {{ ad_requests | length }}</p>
-                            <p class="card-text">Pending: {{ ad_requests | selectattr('status', 'equalto', 'pending') | list | length }}</p>
-                            <p class="card-text">Accepted: {{ ad_requests | selectattr('status', 'equalto', 'accepted') | list | length }}</p>
-                            <p class="card-text">Rejected: {{ ad_requests | selectattr('status', 'equalto', 'rejected') | list | length }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+      <div class="glass p-5 rounded-xl shadow">
+        <h4 class="text-sm text-slate-500">Total Users</h4>
+        <p class="text-2xl font-bold">{{ total_users }}</p>
+      </div>
+      <div class="glass p-5 rounded-xl shadow">
+        <h4 class="text-sm text-slate-500">Active Campaigns</h4>
+        <p class="text-2xl font-bold">{{ active_campaigns }}</p>
+      </div>
+      <div class="glass p-5 rounded-xl shadow">
+        <h4 class="text-sm text-slate-500">Pending Reports</h4>
+        <p class="text-2xl font-bold">{{ pending_reports }}</p>
+      </div>
     </div>
+
+    <!-- User Management -->
+    <section id="users" class="mb-12">
+      <h3 class="text-xl font-bold mb-4">User Management</h3>
+      <div class="overflow-auto rounded-lg shadow">
+        <table class="w-full">
+          <thead class="bg-primary text-white">
+            <tr>
+              <th class="px-4 py-2">Username</th>
+              <th class="px-4 py-2">Role</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-slate-800 text-slate-700 dark:text-white">
+            {% for user in users %}
+            <tr class="border-t">
+              <td class="px-4 py-2">{{ user.username }}</td>
+              <td class="px-4 py-2">{{ user.role }}</td>
+              <td class="px-4 py-2">
+                {% if user.is_flagged %}
+                <span class="text-red-500 font-medium">Flagged</span>
+                {% else %}
+                <span class="text-green-500 font-medium">Active</span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-2 space-x-2">
+                {% if not user.is_flagged %}
+                <button onclick="openModal('flag-{{ user.id }}')" class="text-yellow-600 hover:underline">Flag</button>
+                {% endif %}
+                <button onclick="openModal('delete-{{ user.id }}')" class="text-red-600 hover:underline">Delete</button>
+              </td>
+            </tr>
+
+            <!-- Flag Modal -->
+            <dialog id="flag-{{ user.id }}" class="max-w-md w-full p-0 rounded-lg border shadow-xl dark:bg-slate-900">
+              <form action="{{ url_for('flag_user', user_id=user.id) }}" method="POST" class="p-6 space-y-4">
+                <h3 class="text-xl font-bold">Flag {{ user.username }}</h3>
+                <input name="reason" required placeholder="Reason" class="w-full p-2 border rounded" />
+                <div class="text-right space-x-2">
+                  <button type="submit" class="bg-yellow-500 text-white px-4 py-1 rounded">Flag</button>
+                  <button type="button" onclick="closeModal('flag-{{ user.id }}')" class="px-4 py-1 bg-gray-300 rounded">Cancel</button>
+                </div>
+              </form>
+            </dialog>
+
+            
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Campaign Management -->
+    <section id="campaigns" class="mb-12">
+      <h3 class="text-xl font-bold mb-4">Campaign Management</h3>
+      <div class="overflow-auto rounded-lg shadow">
+        <table class="w-full">
+          <thead class="bg-primary text-white">
+            <tr>
+              <th class="px-4 py-2">Title</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-slate-800 text-slate-700 dark:text-white">
+            {% for campaign in campaigns %}
+            <tr class="border-t">
+              <td class="px-4 py-2">{{ campaign.title }}</td>
+              <td class="px-4 py-2">
+                {% if campaign.is_flagged %}
+                <span class="text-red-500 font-medium">Flagged</span>
+                {% else %}
+                <span class="text-green-500 font-medium">Active</span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-2 space-x-2">
+                {% if not campaign.is_flagged %}
+                <button onclick="openModal('flag-campaign-{{ campaign.id }}')" class="text-yellow-600 hover:underline">Flag</button>
+                {% endif %}
+                <button onclick="openModal('delete-campaign-{{ campaign.id }}')" class="text-red-600 hover:underline">Delete</button>
+              </td>
+            </tr>
+
+            <!-- Flag Campaign Modal -->
+            <dialog id="flag-campaign-{{ campaign.id }}" class="max-w-md w-full p-0 rounded-lg border shadow-xl dark:bg-slate-900">
+              <form action="{{ url_for('flag_campaign', campaign_id=campaign.id) }}" method="POST" class="p-6 space-y-4">
+                <h3 class="text-xl font-bold">Flag Campaign</h3>
+                <input name="reason" required placeholder="Reason" class="w-full p-2 border rounded" />
+                <div class="text-right space-x-2">
+                  <button type="submit" class="bg-yellow-500 text-white px-4 py-1 rounded">Flag</button>
+                  <button type="button" onclick="closeModal('flag-campaign-{{ campaign.id }}')" class="px-4 py-1 bg-gray-300 rounded">Cancel</button>
+                </div>
+              </form>
+            </dialog>
+
+           
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Logs -->
+    <section id="activity" class="mb-12">
+      <h3 class="text-xl font-bold mb-4">Admin Logs</h3>
+      <input type="text" placeholder="Search logs..." class="mb-4 p-2 border rounded w-full" onkeyup="filterLogs(this.value)" />
+      <div id="logList" class="space-y-4">
+        {% for log in recent_activities %}
+        <div class="glass p-4 rounded shadow">
+          <p><strong>{{ log.timestamp }}</strong> — {{ log.description }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
 </div>
-{% endblock %}
 
+<!-- Scripts -->
+<script>
+  function toggleDarkMode() {
+    const root = document.documentElement;
+    root.classList.toggle('dark');
+    localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+  }
 
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
 
+  function openModal(id) {
+    document.getElementById(id).showModal();
+  }
 
+  function closeModal(id) {
+    document.getElementById(id).close();
+  }
 
+  function filterLogs(query) {
+    const items = document.querySelectorAll('#logList > div');
+    items.forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+    });
+  }
+</script>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</body>
+</html>

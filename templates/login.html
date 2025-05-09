@@ -1,57 +1,63 @@
 {% extends 'layout.html' %}
 {% block content %}
 
-<!-- Bootstrap & Icons -->
+<!-- Fonts & Bootstrap -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
   body {
-    background: linear-gradient(135deg, #ede7f6, #f3e5f5);
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Poppins', sans-serif;
+    background: #f3f3fb;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .login-wrapper {
-    max-width: 500px;
-    margin: 5% auto;
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  .form-floating > label {
-    padding: 1rem 0.75rem;
-  }
-
-  .login-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #673ab7;
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .mybtn {
-    background-color: #7e57c2;
-    color: white;
-    font-size: 1.1rem;
-    border: none;
+  .login-container {
+    display: flex;
+    max-width: 1200px;
     width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    transition: 0.3s ease;
+    height: 700px;
+    background: white;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   }
 
-  .mybtn:hover {
-    background-color: #5e35b1;
+  .login-left {
+    flex: 1;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
-  .form-hint {
-    font-size: 0.85rem;
-    color: #777;
-    margin-top: 0.25rem;
+  .login-left h2 {
+    color: #7a00cc;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .login-left p {
+    color: #666;
+    margin-bottom: 30px;
+  }
+
+  .form-floating label {
+    padding-left: 1rem;
+  }
+
+  .form-control, .form-select {
+    border-radius: 10px;
+    padding-left: 1rem;
+  }
+
+  .form-check-label {
+    font-size: 0.9rem;
   }
 
   .password-meter {
@@ -69,29 +75,114 @@
     transition: width 0.3s ease;
   }
 
+  .login-btn {
+    background: linear-gradient(90deg, #8a2be2, #ff7ecf);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 12px;
+    font-weight: 500;
+    border-radius: 30px;
+    margin-top: 20px;
+  }
+
+  .login-btn:hover {
+    opacity: 0.9;
+  }
+
+  .form-links {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin: 10px 0 20px;
+  }
+
+  .form-links a {
+    color: #7a00cc;
+    text-decoration: none;
+  }
+
+  .social-login {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .social-login i {
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: #555;
+  }
+
+  .social-login i:hover {
+    color: #000;
+  }
+
+  .bottom-link {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .bottom-link a {
+    color: #7a00cc;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .login-right {
+    flex: 1;
+    background: linear-gradient(135deg, #8a2be2, #ff7ecf);
+    color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .login-right h1 {
+    font-weight: 600;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+
+  .login-right p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .learn-btn {
+    margin-top: 30px;
+    padding: 10px 20px;
+    background: white;
+    color: #8a2be2;
+    border: none;
+    border-radius: 20px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
   .toast-container {
     position: fixed;
     top: 1rem;
     right: 1rem;
     z-index: 1055;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .dark-mode {
-    background-color: #121212 !important;
-    color: #e1e1e1 !important;
-  }
 </style>
 
-<div class="container">
-  <div class="login-wrapper">
-    <div class="login-title">Login to Your Account</div>
+<div class="login-container">
+  <!-- Left Form -->
+  <div class="login-left">
+    <h2>Log in / Sign Up On Circle</h2>
+    <p>Welcome to your favorite circle!</p>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="toast-container">
@@ -108,26 +199,22 @@
     {% endwith %}
 
     <form action="{{ url_for('get_login') }}" method="POST" id="loginForm">
-      <!-- Email -->
       <div class="form-floating mb-3">
         <input type="email" name="email" class="form-control" id="email" placeholder="name@example.com" required autofocus>
         <label for="email"><i class="bi bi-envelope"></i> Email address</label>
       </div>
 
-      <!-- Password -->
       <div class="form-floating mb-2">
         <input type="password" name="password" id="password" class="form-control" placeholder="Password" required>
         <label for="password"><i class="bi bi-lock"></i> Password</label>
       </div>
       <div class="password-meter"><div id="passwordMeter" class="password-meter-fill bg-danger"></div></div>
 
-      <!-- Show/hide password -->
       <div class="form-check form-switch my-2">
         <input class="form-check-input" type="checkbox" role="switch" id="togglePassword">
         <label class="form-check-label" for="togglePassword">Show password</label>
       </div>
 
-      <!-- Role -->
       <div class="form-floating mb-3">
         <select name="role" class="form-select" id="roleSelect" required>
           <option value="" disabled selected>Select your role</option>
@@ -139,25 +226,39 @@
       </div>
       <div id="roleInfo" class="form-hint mb-3"></div>
 
-      <!-- reCAPTCHA placeholder -->
-      <!-- <div class="mb-3">[ reCAPTCHA would go here ]</div> -->
+      <div class="form-links">
+        <div>
+          <input type="checkbox" id="rememberMe">
+          <label for="rememberMe">Remember me</label>
+        </div>
+        <a href="#">Forgot password?</a>
+      </div>
 
-      <button type="submit" class="btn mybtn" id="loginBtn">
-        <span id="loginText">Login</span>
+      <button type="submit" class="btn login-btn" id="loginBtn">
+        <span id="loginText">Log in</span>
         <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
       </button>
 
-      <div class="text-center mt-3">
-        <a href="{{ url_for('get_signup') }}" class="link">Don't have an account? Sign up</a>
-        <br>
-        <a href="#" class="link">Forgot your password?</a>
-      </div>
+
+
+      
+
+      <div class="bottom-link">Don't have an account? <a href="{{ url_for('get_signup') }}">Sign up</a></div>
     </form>
+  </div>
+
+  <!-- Right Info Panel -->
+  <div class="login-right">
+    <h1>InfluencerConnect</h1>
+    <p>
+      InfluencerConnect is a dynamic platform connecting sponsors and influencers to create impactful campaigns. Our mission is to empower collaborations that drive growth and innovation in the digital space. Join us to be part of a thriving community where opportunities and creativity come together.
+    </p>
+    <!-- <a href="#" class="learn-btn">Learn More <i class="bi bi-play-circle"></i></a> -->
   </div>
 </div>
 
 <script>
-  // Password toggle
+  // Toggle password
   document.getElementById("togglePassword").addEventListener("change", function () {
     const pwd = document.getElementById("password");
     pwd.type = this.checked ? "text" : "password";
@@ -172,13 +273,12 @@
     if (/[A-Z]/.test(val)) score += 25;
     if (/[0-9]/.test(val)) score += 25;
     if (/[^A-Za-z0-9]/.test(val)) score += 25;
-
     meter.style.width = score + "%";
     meter.className = "password-meter-fill";
     meter.classList.add(score < 50 ? "bg-danger" : score < 75 ? "bg-warning" : "bg-success");
   });
 
-  // Smart role info
+  // Role info
   const roleSelect = document.getElementById("roleSelect");
   const roleInfo = document.getElementById("roleInfo");
   roleSelect.addEventListener("change", function () {
@@ -191,7 +291,6 @@
     }[role] || "";
   });
 
-  // Restore last role
   document.addEventListener("DOMContentLoaded", () => {
     const lastRole = localStorage.getItem("lastRole");
     if (lastRole) {
@@ -200,19 +299,12 @@
     }
   });
 
-  // Button spinner
+  // Spinner on submit
   document.getElementById("loginForm").addEventListener("submit", function () {
     const btn = document.getElementById("loginBtn");
     document.getElementById("loginText").classList.add("d-none");
     document.getElementById("loginSpinner").classList.remove("d-none");
     btn.disabled = true;
-  });
-
-  // Dark mode persistence
-  document.addEventListener("DOMContentLoaded", () => {
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('dark-mode');
-    }
   });
 </script>
 

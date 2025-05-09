@@ -1,265 +1,205 @@
-
-
-
-
-{% extends 'layout.html' %}
-{% block content %}
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
-
-<style>
-    .update-profile-container {
-        max-width: 900px;
-        margin: 2rem auto;
-        background: #ffffff;
-        padding: 2rem;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.15);
-        animation: fadeIn 0.6s ease-out;
+<!DOCTYPE html>
+<html lang="en" class="transition duration-300">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Update Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            dark: '#1e1e2f',
+            light: '#f9fafb',
+          }
+        }
+      }
     }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
     }
+  </style>
+</head>
+<body class="bg-light text-slate-800 dark:bg-dark dark:text-white transition duration-300">
 
-    h2 {
-        text-align: center;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        color: #343a40;
-    }
+<div class="flex min-h-screen">
 
-    .form-section-header {
-        background: #f1f1f1;
-        padding: 0.75rem 1rem;
-        border-left: 5px solid #007bff;
-        font-weight: bold;
-        color: #007bff;
-        margin-bottom: 1rem;
-        border-radius: 5px;
-    }
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 shadow-lg px-6 py-8">
+    <h1 class="text-2xl font-bold text-primary">InfluencerHub</h1>
+    <nav class="mt-8 space-y-4 text-slate-700 dark:text-slate-300">
+      <a href="{{ url_for('influencer_dashboard') }}" class="block hover:text-primary font-medium">Dashboard</a>
+      <a href="{{ url_for('search_campaigns') }}" class="block hover:text-primary font-medium">Search Campaigns</a>
+      <a href="{{ url_for('ad_requests') }}" class="block hover:text-primary font-medium">My Requests</a>
+      <a href="{{ url_for('update_profile') }}" class="block hover:text-primary font-medium">Edit Profile</a>
+      <button onclick="toggleDarkMode()" class="text-sm text-slate-500 hover:text-primary">Toggle Dark Mode</button>
+      <a href="{{ url_for('logout') }}" class="block text-red-500 hover:text-red-600 font-medium mt-10">Logout</a>
+    </nav>
+  </aside>
 
-    .form-control, .form-select {
-        border-radius: 0.4rem;
-    }
+  <!-- Main Content -->
+  <main class="flex-1 px-8 py-10">
+    <div class="max-w-4xl mx-auto bg-white dark:bg-slate-800 p-8 rounded-lg shadow">
+      <h2 class="text-3xl font-bold text-center text-primary mb-8">Update Profile</h2>
 
-    .form-group label i {
-        color: #007bff;
-        margin-right: 6px;
-    }
+      <form action="{{ url_for('update_profile') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
 
-    .form-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .form-col-half {
-        flex: 0 0 48%;
-    }
-
-    .profile-preview {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 2px solid #ced4da;
-        margin-bottom: 1rem;
-    }
-</style>
-
-<div class="update-profile-container">
-    <h2><i class="bi bi-person-circle"></i> Update Profile</h2>
-
-    <form action="{{ url_for('update_profile') }}" method="POST" enctype="multipart/form-data">
-        
         {% if current_user.role == 'sponsor' %}
-        <div class="form-section-header">Sponsor Information</div>
+        <h3 class="text-xl font-semibold text-primary mb-4">Sponsor Information</h3>
 
-        <!-- Company Logo Upload -->
-        <div class="form-group text-center">
-            {% if sponsor.logo_url %}
-                <img src="{{ sponsor.logo_url }}" alt="Company Logo" class="profile-preview">
-            {% endif %}
-            <input type="file" name="company_logo" class="form-control-file">
-            <small class="text-muted">Upload your company logo (jpg/png)</small>
+        <!-- Logo -->
+        <div class="text-center">
+          {% if sponsor.company_logo %}
+            <img src="{{ sponsor.company_logo }}" class="w-24 h-24 rounded-full mx-auto mb-2 border" />
+          {% endif %}
+          <input type="file" name="company_logo" accept="image/*" class="block mx-auto text-sm mt-2" />
+          <p class="text-xs text-slate-500">Upload company logo (jpg/png)</p>
         </div>
 
-        <div class="form-row">
-            <div class="form-group form-col-half">
-                <label><i class="bi bi-building"></i> Company Name</label>
-                <input type="text" name="company_name" class="form-control" value="{{ sponsor.company_name or '' }}">
-            </div>
-            <div class="form-group form-col-half">
-                <label><i class="bi bi-person"></i> Individual Name</label>
-                <input type="text" name="individual_name" class="form-control" value="{{ sponsor.individual_name or '' }}">
-            </div>
+        <!-- Company Fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 font-medium">Company Name</label>
+            <input type="text" name="company_name" value="{{ sponsor.company_name or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
+          <div>
+            <label class="block mb-1 font-medium">Individual Name</label>
+            <input type="text" name="individual_name" value="{{ sponsor.individual_name or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-briefcase-fill"></i> Industry</label>
-            <select name="industry" class="form-control">
-                <option value="">-- Select Industry --</option>
-                <option value="tech" {% if sponsor.industry == 'tech' %}selected{% endif %}>Technology</option>
-                <option value="fashion" {% if sponsor.industry == 'fashion' %}selected{% endif %}>Fashion</option>
-                <option value="finance" {% if sponsor.industry == 'finance' %}selected{% endif %}>Finance</option>
-                <option value="gaming" {% if sponsor.industry == 'gaming' %}selected{% endif %}>Gaming</option>
-                <option value="health" {% if sponsor.industry == 'health' %}selected{% endif %}>Health & Wellness</option>
-                <option value="automotive" {% if sponsor.industry == 'automotive' %}selected{% endif %}>Automotive</option>
-                <option value="travel" {% if sponsor.industry == 'travel' %}selected{% endif %}>Travel & Tourism</option>
-                <option value="education" {% if sponsor.industry == 'education' %}selected{% endif %}>Education</option>
-                <option value="food" {% if sponsor.industry == 'food' %}selected{% endif %}>Food & Beverage</option>
-                <option value="sports" {% if sponsor.industry == 'sports' %}selected{% endif %}>Sports & Fitness</option>
-                <option value="entertainment" {% if sponsor.industry == 'entertainment' %}selected{% endif %}>Entertainment</option>
-                <option value="real_estate" {% if sponsor.industry == 'real_estate' %}selected{% endif %}>Real Estate</option>
-                <option value="beauty" {% if sponsor.industry == 'beauty' %}selected{% endif %}>Beauty & Cosmetics</option>
-                <option value="home_decor" {% if sponsor.industry == 'home_decor' %}selected{% endif %}>Home Decor</option>
-                <option value="ecommerce" {% if sponsor.industry == 'ecommerce' %}selected{% endif %}>E-commerce</option>
-                <option value="art" {% if sponsor.industry == 'art' %}selected{% endif %}>Art & Design</option>
-                <option value="photography" {% if sponsor.industry == 'photography' %}selected{% endif %}>Photography</option>
-                <option value="pets" {% if sponsor.industry == 'pets' %}selected{% endif %}>Pet Products</option>
-                <option value="parenting" {% if sponsor.industry == 'parenting' %}selected{% endif %}>Parenting</option>
-                <option value="music" {% if sponsor.industry == 'music' %}selected{% endif %}>Music</option>
-                <option value="non_profit" {% if sponsor.industry == 'non_profit' %}selected{% endif %}>Non-Profit</option>
-                <option value="luxury" {% if sponsor.industry == 'luxury' %}selected{% endif %}>Luxury Goods</option>
-                <option value="books" {% if sponsor.industry == 'books' %}selected{% endif %}>Books & Publishing</option>
-                <option value="events" {% if sponsor.industry == 'events' %}selected{% endif %}>Events & Conferences</option>
-                <option value="sustainability" {% if sponsor.industry == 'sustainability' %}selected{% endif %}>Sustainability</option>
-                <option value="cybersecurity" {% if sponsor.industry == 'cybersecurity' %}selected{% endif %}>Cybersecurity</option>
-                <option value="agriculture" {% if sponsor.industry == 'agriculture' %}selected{% endif %}>Agriculture</option>
-                <option value="law" {% if sponsor.industry == 'law' %}selected{% endif %}>Legal Services</option>
-                <option value="insurance" {% if sponsor.industry == 'insurance' %}selected{% endif %}>Insurance</option>
-                <option value="blockchain" {% if sponsor.industry == 'blockchain' %}selected{% endif %}>Blockchain & Crypto</option>
-                <option value="telecom" {% if sponsor.industry == 'telecom' %}selected{% endif %}>Telecommunications</option>
-                <option value="freelance" {% if sponsor.industry == 'freelance' %}selected{% endif %}>Freelance & Gig Economy</option>
-            </select>
-            
+        <!-- Dropdowns & Bio -->
+        <div>
+          <label class="block mb-1 font-medium">Industry</label>
+          <select name="industry" class="w-full p-2 border rounded dark:bg-slate-900">
+            <option value="">-- Select Industry --</option>
+            {% for value, label in [
+              ('tech', 'Technology'), ('fashion', 'Fashion'), ('finance', 'Finance'),
+              ('gaming', 'Gaming'), ('health', 'Health & Wellness'), ('travel', 'Travel & Tourism'),
+              ('education', 'Education'), ('food', 'Food & Beverage'), ('sports', 'Sports & Fitness'),
+              ('entertainment', 'Entertainment'), ('real_estate', 'Real Estate'), ('beauty', 'Beauty & Cosmetics'),
+              ('ecommerce', 'E-commerce'), ('art', 'Art & Design'), ('photography', 'Photography'),
+              ('pets', 'Pet Products'), ('parenting', 'Parenting'), ('music', 'Music'),
+              ('non_profit', 'Non-Profit'), ('luxury', 'Luxury Goods'), ('books', 'Books & Publishing'),
+              ('events', 'Events & Conferences'), ('sustainability', 'Sustainability'),
+              ('cybersecurity', 'Cybersecurity'), ('agriculture', 'Agriculture'), ('law', 'Legal Services'),
+              ('insurance', 'Insurance'), ('blockchain', 'Blockchain & Crypto'), ('telecom', 'Telecommunications'),
+              ('freelance', 'Freelance & Gig Economy')
+            ] %}
+              <option value="{{ value }}" {% if sponsor.industry == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-wallet2"></i> Budget (in USD)</label>
-            <input type="number" name="budget" class="form-control" value="{{ sponsor.budget or '' }}">
+        <div>
+          <label class="block mb-1 font-medium">Budget (USD)</label>
+          <input type="number" name="budget" value="{{ sponsor.budget or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-file-earmark-text"></i> Company Bio</label>
-            <textarea name="bio" class="form-control" rows="4" placeholder="Describe your brand...">{{ sponsor.bio or '' }}</textarea>
+        <div>
+          <label class="block mb-1 font-medium">Company Bio</label>
+          <textarea name="bio" rows="4" class="w-full p-2 border rounded dark:bg-slate-900">{{ sponsor.bio or '' }}</textarea>
         </div>
 
         {% elif current_user.role == 'influencer' %}
-        <div class="form-section-header">Influencer Information</div>
+        <h3 class="text-xl font-semibold text-primary mb-4">Influencer Information</h3>
 
-        <!-- Profile Picture Upload -->
-        <div class="form-group text-center">
-            {% if influencer.profile_picture %}
-                <img src="{{ influencer.profile_picture }}" alt="Profile Picture" class="profile-preview">
-            {% endif %}
-            <input type="file" name="profile_picture" class="form-control-file">
-            <small class="text-muted">Upload a profile photo (jpg/png)</small>
-        </div>
-     
-        
-
-        <div class="form-row">
-            <div class="form-group form-col-half">
-                <label><i class="bi bi-person-bounding-box"></i> Name</label>
-                <input type="text" name="name" class="form-control" value="{{ influencer.name or '' }}">
-            </div>
-            <div class="form-group form-col-half">
-                <label><i class="bi bi-globe-americas"></i> Location</label>
-                <input type="text" name="location" class="form-control" value="{{ influencer.location or '' }}">
-            </div>
+        <!-- Profile Photo -->
+        <div class="text-center">
+          {% if influencer.profile_photo %}
+            <img src="{{ influencer.profile_photo }}" class="w-24 h-24 rounded-full mx-auto mb-2 border" />
+          {% endif %}
+          <input type="file" name="profile_photo" accept="image/*" class="block mx-auto text-sm mt-2" />
+          <p class="text-xs text-slate-500">Upload a profile photo (jpg/png)</p>
         </div>
 
-        <div class="form-row">
-            <div class="form-group form-col-half">
-                <label><i class="bi bi-tags"></i> Category</label>
-                <select name="category" class="form-control">
-                    <option value="">-- Select Category --</option>
-                    <option value="beauty" {% if influencer.category == 'beauty' %}selected{% endif %}>Beauty</option>
-                    <option value="fitness" {% if influencer.category == 'fitness' %}selected{% endif %}>Fitness</option>
-                    <option value="tech" {% if influencer.category == 'tech' %}selected{% endif %}>Tech</option>
-                    <option value="fashion" {% if influencer.category == 'fashion' %}selected{% endif %}>Fashion</option>
-                    <option value="gaming" {% if influencer.category == 'gaming' %}selected{% endif %}>Gaming</option>
-                    <option value="lifestyle" {% if influencer.category == 'lifestyle' %}selected{% endif %}>Lifestyle</option>
-                    <option value="travel" {% if influencer.category == 'travel' %}selected{% endif %}>Travel</option>
-                    <option value="food" {% if influencer.category == 'food' %}selected{% endif %}>Food & Cooking</option>
-                    <option value="health" {% if influencer.category == 'health' %}selected{% endif %}>Health & Wellness</option>
-                    <option value="education" {% if influencer.category == 'education' %}selected{% endif %}>Education</option>
-                    <option value="finance" {% if influencer.category == 'finance' %}selected{% endif %}>Finance</option>
-                    <option value="parenting" {% if influencer.category == 'parenting' %}selected{% endif %}>Parenting</option>
-                    <option value="music" {% if influencer.category == 'music' %}selected{% endif %}>Music</option>
-                    <option value="photography" {% if influencer.category == 'photography' %}selected{% endif %}>Photography</option>
-                    <option value="art" {% if influencer.category == 'art' %}selected{% endif %}>Art & Design</option>
-                    <option value="sports" {% if influencer.category == 'sports' %}selected{% endif %}>Sports</option>
-                    <option value="automotive" {% if influencer.category == 'automotive' %}selected{% endif %}>Automotive</option>
-                    <option value="pets" {% if influencer.category == 'pets' %}selected{% endif %}>Pets & Animals</option>
-                    <option value="home_decor" {% if influencer.category == 'home_decor' %}selected{% endif %}>Home Decor</option>
-                    <option value="books" {% if influencer.category == 'books' %}selected{% endif %}>Books & Literature</option>
-                    <option value="spirituality" {% if influencer.category == 'spirituality' %}selected{% endif %}>Spirituality</option>
-                    <option value="motivation" {% if influencer.category == 'motivation' %}selected{% endif %}>Motivation & Self-help</option>
-                    <option value="sustainability" {% if influencer.category == 'sustainability' %}selected{% endif %}>Sustainability</option>
-                    <option value="DIY" {% if influencer.category == 'DIY' %}selected{% endif %}>DIY & Crafts</option>
-                    <option value="career" {% if influencer.category == 'career' %}selected{% endif %}>Career & Development</option>
-                    <option value="relationships" {% if influencer.category == 'relationships' %}selected{% endif %}>Relationships</option>
-                    <option value="luxury" {% if influencer.category == 'luxury' %}selected{% endif %}>Luxury Lifestyle</option>
-                    <option value="skincare" {% if influencer.category == 'skincare' %}selected{% endif %}>Skincare</option>
-                    <option value="makeup" {% if influencer.category == 'makeup' %}selected{% endif %}>Makeup</option>
-                    <option value="productivity" {% if influencer.category == 'productivity' %}selected{% endif %}>Productivity</option>
-                    <option value="language" {% if influencer.category == 'language' %}selected{% endif %}>Language & Culture</option>
-                </select>
-                
-            </div>
-            <div class="form-group form-col-half">
-                <label><i class="bi bi-bullseye"></i> Niche</label>
-                <input type="text" name="niche" class="form-control" value="{{ influencer.niche or '' }}">
-            </div>
+        <!-- Personal Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 font-medium">Name</label>
+            <input type="text" name="name" value="{{ influencer.name or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
+          <div>
+            <label class="block mb-1 font-medium">Location</label>
+            <input type="text" name="location" value="{{ influencer.location or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-people"></i> Followers / Reach</label>
-            <input type="number" name="reach" class="form-control" value="{{ influencer.reach or '' }}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 font-medium">Category</label>
+            <select name="category" class="w-full p-2 border rounded dark:bg-slate-900">
+              <option value="">-- Select Category --</option>
+              {% for option in ['beauty', 'fitness', 'tech', 'fashion', 'gaming', 'lifestyle', 'travel', 'food', 'health', 'education', 'finance', 'parenting', 'music', 'photography', 'art', 'sports', 'automotive', 'pets', 'home_decor', 'books', 'spirituality', 'motivation', 'sustainability', 'DIY', 'career', 'relationships', 'luxury', 'skincare', 'makeup', 'productivity', 'language'] %}
+                <option value="{{ option }}" {% if influencer.category == option %}selected{% endif %}>{{ option | capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-medium">Niche</label>
+            <input type="text" name="niche" value="{{ influencer.niche or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-bar-chart-line"></i> Engagement Rate (%)</label>
-            <input type="number" step="0.01" name="engagement_rate" class="form-control" value="{{ influencer.engagement_rate or '' }}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 font-medium">Followers / Reach</label>
+            <input type="number" name="reach" value="{{ influencer.reach or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
+          <div>
+            <label class="block mb-1 font-medium">Engagement Rate (%)</label>
+            <input type="number" step="0.01" name="engagement_rate" value="{{ influencer.engagement_rate or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
+          </div>
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-instagram"></i> Instagram Handle</label>
-            <input type="text" name="instagram" class="form-control" value="{{ influencer.instagram or '' }}">
+        <div>
+          <label class="block mb-1 font-medium">Instagram</label>
+          <input type="text" name="instagram" value="{{ influencer.instagram or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-youtube"></i> YouTube Channel</label>
-            <input type="text" name="youtube" class="form-control" value="{{ influencer.youtube or '' }}">
+        <div>
+          <label class="block mb-1 font-medium">YouTube</label>
+          <input type="text" name="youtube" value="{{ influencer.youtube or '' }}" class="w-full p-2 border rounded dark:bg-slate-900" />
         </div>
 
-        <div class="form-group">
-            <label><i class="bi bi-chat-left-dots"></i> Content Types</label>
-            <div class="form-check">
-                <input type="checkbox" name="content_types" value="reels" class="form-check-input" id="reels">
-                <label class="form-check-label" for="reels">Reels</label>
-            </div>
-            <div class="form-check">
-                <input type="checkbox" name="content_types" value="shorts" class="form-check-input" id="shorts">
-                <label class="form-check-label" for="shorts">YouTube Shorts</label>
-            </div>
-            <div class="form-check">
-                <input type="checkbox" name="content_types" value="posts" class="form-check-input" id="posts">
-                <label class="form-check-label" for="posts">Feed Posts</label>
-            </div>
+        <div>
+          <label class="block mb-1 font-medium">Content Types</label>
+          <div class="flex gap-4 flex-wrap">
+            {% for type in ['Reels', 'YouTube Shorts', 'Feed Posts'] %}
+              <label class="inline-flex items-center gap-2">
+                <input type="checkbox" name="content_types" value="{{ type }}" {% if type in (influencer.content_types or '') %}checked{% endif %} />
+                <span class="text-sm">{{ type }}</span>
+              </label>
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
 
         <div class="text-center">
-            <button type="submit" class="btn btn-primary mt-3">
-                <i class="bi bi-save2"></i> Update Profile
-            </button>
+          <button type="submit" class="px-6 py-2 bg-primary text-white rounded hover:bg-indigo-700 transition mt-4">
+            Save Changes
+          </button>
         </div>
-    </form>
+      </form>
+    </div>
+  </main>
 </div>
 
-{% endblock %}
+<!-- Dark Mode Logic -->
+<script>
+  const root = document.documentElement;
+  function toggleDarkMode() {
+    root.classList.toggle('dark');
+    localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('theme') === 'dark') {
+    root.classList.add('dark');
+  }
+</script>
+
+</body>
+</html>

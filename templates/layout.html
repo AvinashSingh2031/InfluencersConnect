@@ -10,10 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- In your layout.html -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
 
     <!-- Font Awesome -->
     {% block css %}
@@ -256,29 +252,6 @@
 
 
     {% elif current_user.role == 'influencer' %}
-    <!-- Navbar for Influencers -->
-    <!-- <nav class="navbar navbar-expand-lg navbar-dark">
-                <a class="navbar-brand" href="{{ url_for('influencer_dashboard') }}">Influencer Platform</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('ad_requests') }}">Ad Requests</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('update_profile') }}">Update Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('search_campaigns') }}">Search for Campaigns</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                        </li>
-                    </ul>
-                </div>
-            </nav> -->
 
     <nav class="navbar navbar-expand-lg navbar-dark">
         <a class="navbar-brand" href="{{ url_for('influencer_dashboard') }}">Influencer Platform</a>
@@ -297,13 +270,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('search_campaigns') }}">Search for Campaigns</a>
                 </li>
-                <!-- <li class="nav-item">
+                <li class="nav-item">
                     <a href="#" class="nav-link text-dark" data-toggle="modal" data-target="#aiRecommendModal">
                         <button class="btn btn-warning btn-sm">
                             <i class="fas fa-lightbulb"></i> AI Campaign Recommendations
                         </button>
                     </a>
-                </li> -->
+                </li>
 
                 <!-- <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('my_profile') }}">
@@ -405,34 +378,7 @@
         </div>
     </div>
 
-    <!-- <div class="modal fade" id="aiRecommendModal" tabindex="-1" role="dialog" aria-labelledby="aiRecommendModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="aiRecommendModalLabel">AI Campaign Recommendations</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <label for="influencer-category">Category:</label>
-                    <input type="text" id="influencer-category" class="form-control" placeholder="e.g., Tech">
 
-                    <label for="influencer-niche" class="mt-2">Niche:</label>
-                    <input type="text" id="influencer-niche" class="form-control" placeholder="e.g., Smartphones">
-
-                    <button id="recommend-campaigns-btn" class="btn btn-primary mt-3">
-                        <i class="fas fa-search"></i> Get AI Recommendations
-                    </button>
-
-                    <div id="campaign-recommendations" class="mt-3">
-                        <!-- AI recommendations will be displayed here -->
-    <!-- </div>
-                </div>
-            </div>
-        </div>
-    </div>  -->
 
     {% endif %}
     {% endif %}
@@ -795,43 +741,11 @@
     </div>
 
 
-    <!-- <div id="recommendationModal" class="modal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">AI-Based Influencer Recommendations</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-bordered">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Niche</th>
-                                <th>Reach</th>
-                                <th>Score</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recommendationTableBody">
-                            <!-- AI Recommendations will be loaded here -->
-    <!-- </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div> --> -->
 
 
 
 
-    <!-- ✅ Cleaned and Fixed AI Recommendations Script -->
-    <!-- Just before closing </body> -->
+
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {

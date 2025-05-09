@@ -1,222 +1,271 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Influencer Connect</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
   <style>
+    :root {
+      --blue: #3a7bfd;
+      --light-bg: #f0f4ff;
+      --text-dark: #222;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
+
+    html, body {
       font-family: 'Inter', sans-serif;
-      background-color: #fdfdfd;
-      color: #222;
+      background: white;
+      color: var(--text-dark);
       overflow-x: hidden;
     }
-  
+
     a { text-decoration: none; color: inherit; }
-  
+
     .navbar {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 60px; background-color: white;
+      padding: 20px 60px;
+      background: white;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      position: sticky; top: 0; z-index: 1000;
-      transition: background-color 0.3s ease;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
-  
-    .navbar:hover {
-      background-color: #f7f7f7;
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--blue);
     }
-  
-    .logo { font-size: 1.8rem; font-weight: 600; }
-  
+
     .nav-buttons .btn { margin-left: 15px; }
-  
+
     .btn {
-      display: inline-block; padding: 12px 24px;
-      background-color: #3a7bfd; color: white;
-      border-radius: 8px; font-weight: 600;
+      padding: 12px 26px;
+      border-radius: 10px;
+      font-weight: 600;
+      background-color: var(--blue);
+      color: white;
       transition: 0.3s ease;
+      display: inline-block;
     }
-  
+
     .btn:hover { background-color: #2f6be3; }
-  
+
     .btn-outline {
-      background-color: transparent;
-      border: 2px solid #3a7bfd; color: #3a7bfd;
+      background: transparent;
+      border: 2px solid var(--blue);
+      color: var(--blue);
     }
-  
-    .btn-outline:hover { background-color: #3a7bfd; color: white; }
-  
+
+    .btn-outline:hover { background: var(--blue); color: white; }
+
     .hero {
-      display: flex; flex-wrap: wrap;
-      align-items: center; justify-content: center;
-      padding: 100px 40px;
-      background: linear-gradient(135deg, #f0f4ff, #e2ecff);
       position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 120px 60px 60px;
+      background: var(--light-bg);
       overflow: hidden;
     }
-  
+
     .hero-text {
-      flex: 1; max-width: 500px; text-align: left;
+      flex: 1;
+      max-width: 600px;
+      z-index: 1;
     }
-  
+
     .hero h2 {
-      font-size: 3rem; margin-bottom: 20px;
-      color: #333;
-      font-weight: 700;
+      font-size: 3.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
     }
-  
+
+    .hero h2 .highlight {
+      color: var(--blue);
+      font-weight: 800;
+    }
+
     .hero p {
-      font-size: 1.2rem; margin-bottom: 30px; color: #444;
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      color: #444;
     }
-  
+
     .cta {
       display: flex;
       gap: 15px;
+      flex-wrap: wrap;
     }
-  
-    .cta .btn {
-      flex: 1;
-    }
-  
+
     .hero-anim {
-      flex: 1; max-width: 500px; margin-top: 30px;
+      flex: 1;
+      z-index: 1;
+      max-width: 550px;
+      margin-top: 30px;
     }
-  
+
+    .hero-wave {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+      z-index: 0;
+    }
+
     .features {
-      padding: 80px 20px; display: flex;
-      flex-wrap: wrap; justify-content: space-around;
+      padding: 80px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
       background: white;
     }
-  
+
     .feature {
-      text-align: center; max-width: 300px;
-      margin: 20px; padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      text-align: center;
+      max-width: 300px;
+      margin: 20px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
       background-color: #fff;
       transition: transform 0.3s ease;
     }
-  
+
     .feature:hover {
       transform: translateY(-5px);
     }
-  
-    .feature h3 { font-size: 1.4rem; margin-bottom: 10px; }
-  
-    .feature p { color: #555; font-size: 1rem; }
-  
+
+    .feature h3 {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      color: var(--blue);
+    }
+
     .stats {
-      padding: 60px 20px; background-color: #f0f4fa;
+      background: #f0f4fa;
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .stat-grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 60px;
+      margin-top: 40px;
+    }
+
+    .stat h3 {
+      font-size: 2.8rem;
+      color: var(--blue);
+    }
+
+    .how-it-works {
+      padding: 80px 20px;
       text-align: center;
     }
-  
-    .stat-grid {
-      display: flex; justify-content: center;
-      gap: 50px; flex-wrap: wrap;
-    }
-  
-    .stat {
-      text-align: center; margin: 20px;
-    }
-  
-    .stat h3 {
-      font-size: 2.5rem; color: #3a7bfd;
-    }
-  
-    .how-it-works {
-      padding: 60px 20px; text-align: center;
-    }
-  
+
     .steps {
-      display: flex; justify-content: space-around;
-      flex-wrap: wrap; gap: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 30px;
     }
-  
+
     .step {
-      max-width: 300px;
-      padding: 10px;
-      transition: transform 0.3s ease;
+      max-width: 280px;
+      padding: 20px;
     }
-  
-    .step:hover {
-      transform: scale(1.05);
-    }
-  
+
     .step img {
-      width: 60px; margin-bottom: 15px;
+      width: 60px;
+      margin-bottom: 15px;
     }
-  
+
     .testimonials {
-      background: #eaf3ff; padding: 60px 20px;
+      background: #eaf3ff;
+      padding: 80px 20px;
+      text-align: center;
     }
-  
+
     .testimonial {
       max-width: 600px;
       margin: 0 auto;
       font-style: italic;
-      text-align: center;
+      font-size: 1.1rem;
+      color: #333;
     }
-  
+
     .testimonial::before {
-      content: "“"; font-size: 3rem; color: #3a7bfd;
+      content: "“";
+      font-size: 3rem;
+      color: var(--blue);
     }
-  
+
     .testimonial-author {
-      font-weight: bold;
       margin-top: 20px;
+      font-weight: bold;
     }
-  
+
+    .footer {
+      background: #f5f5f5;
+      padding: 30px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
     .sticky-cta {
       position: fixed;
-      bottom: 20px; right: 20px;
-      background: #3a7bfd; color: white;
-      padding: 12px 24px; border-radius: 50px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 1000; font-weight: bold;
-      transition: transform 0.3s ease;
+      bottom: 20px;
+      right: 20px;
+      background: var(--blue);
+      color: white;
+      padding: 14px 26px;
+      border-radius: 50px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      font-weight: bold;
     }
-  
+
     .sticky-cta:hover {
       transform: scale(1.05);
     }
-  
-    .footer {
-      text-align: center; padding: 30px 20px;
-      background-color: #f3f3f3;
-      font-size: 0.9rem; color: #777;
-    }
-  
-    /* Responsiveness */
+
     @media (max-width: 768px) {
-      .hero { flex-direction: column; text-align: center; }
-      .hero-text, .hero-anim { max-width: 100%; }
-      .cta { flex-direction: column; gap: 20px; }
-      .feature {
-        max-width: 100%;
-        margin: 10px;
+      .hero {
+        flex-direction: column;
+        padding: 60px 20px;
       }
+
+      .hero h2 {
+        font-size: 2rem;
+        text-align: center;
+      }
+
+      .cta {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .hero-anim {
+        margin-top: 40px;
+      }
+
       .steps {
         flex-direction: column;
         align-items: center;
       }
-      .step {
-        max-width: 90%;
-        margin-bottom: 20px;
-      }
-      .stat-grid {
-        flex-direction: column;
-      }
     }
   </style>
-  
 </head>
 <body>
   <header class="navbar">
@@ -228,21 +277,29 @@
   </header>
 
   <section class="hero">
+    <svg class="hero-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+      <path fill="#3a7bfd" fill-opacity="0.15"
+            d="M0,288L60,272C120,256,240,224,360,213.3C480,203,600,213,720,202.7C840,192,960,160,1080,149.3C1200,139,1320,149,1380,154.7L1440,160L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"/>
+    </svg>
     <div class="hero-text">
-      <h2>Find the Right Influencer, Every Time</h2>
-      <p>Our AI matches you with top-performing influencers on platforms like YouTube, Instagram, TikTok, and more.</p>
+      <h2>Influencer Marketing <span class="highlight">Done Right</span></h2>
+      <p>Identify, recruit & activate the world's most engaging social influencers.</p>
       <div class="cta">
-        <a href="/signup" class="btn">Get Started</a>
-        <a href="/login" class="btn btn-outline">I Already Have an Account</a>
+        <a href="/signup" class="btn">🚀 Get Started</a>
+        <a href="/login" class="btn btn-outline">Login</a>
       </div>
     </div>
     <div class="hero-anim" data-aos="fade-up">
-      <lottie-player src="https://assets4.lottiefiles.com/packages/lf20_qp1q7mct.json" background="transparent" speed="1" style="width: 100%; height: 400px;" loop autoplay></lottie-player>
+      <lottie-player
+        src="https://assets9.lottiefiles.com/packages/lf20_tfb3estd.json"
+        background="transparent"
+        speed="1"
+        style="width: 100%; height: 400px;"
+        loop
+        autoplay>
+      </lottie-player>
     </div>
   </section>
-
-  <!-- Particles background -->
-  <div id="particles-js"></div>
 
   <section class="features" data-aos="fade-up">
     <div class="feature">
@@ -263,15 +320,15 @@
     <h2>Why Brands Trust Us</h2>
     <div class="stat-grid">
       <div class="stat">
-        <h3><span class="counter" data-target="3200">0</span>+</h3>
+        <h3>3200+</h3>
         <p>Influencers Matched</p>
       </div>
       <div class="stat">
-        <h3><span class="counter" data-target="1200">0</span>+</h3>
+        <h3>1200+</h3>
         <p>Campaigns Launched</p>
       </div>
       <div class="stat">
-        <h3><span class="counter" data-target="48">0</span> hrs</h3>
+        <h3>48 hrs</h3>
         <p>Avg Match Time</p>
       </div>
     </div>
@@ -312,35 +369,6 @@
   </footer>
 
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>
-    AOS.init();
-    const counters = document.querySelectorAll('.counter');
-    counters.forEach(counter => {
-      const update = () => {
-        const target = +counter.getAttribute('data-target');
-        const count = +counter.innerText;
-        const increment = Math.ceil(target / 100);
-        if (count < target) {
-          counter.innerText = count + increment;
-          setTimeout(update, 20);
-        } else {
-          counter.innerText = target;
-        }
-      };
-      update();
-    });
-
-    particlesJS('particles-js', {
-      particles: {
-        number: { value: 100, density: { enable: true, value_area: 800 } },
-        color: { value: '#3a7bfd' },
-        shape: { type: 'circle' },
-        opacity: { value: 0.5, random: true, anim: { enable: true, speed: 1, opacity_min: 0 } },
-        size: { value: 3, random: true, anim: { enable: true, speed: 40, size_min: 0.1 } },
-        line_linked: { enable: true, distance: 150, color: '#3a7bfd', opacity: 0.4, width: 1 },
-      },
-      interactivity: { detect_on: 'canvas', events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' } } },
-    });
-  </script>
+  <script>AOS.init();</script>
 </body>
 </html>

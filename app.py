@@ -20,6 +20,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 import logging
 from werkzeug.security import generate_password_hash
 from recommendation_model import RecommendationEngine
+from sqlalchemy.orm import joinedload
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 
 
 
@@ -30,11 +34,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)  # <-- Ensure this is added
 
+# db.init_app(app)
+
+cloudinary.config( 
+    cloud_name = "djzaydfaf", 
+    api_key = "312975613544348", 
+    api_secret = "jFQK8dMNuPhBMah7v389VFa3-bo", # Click 'View API Keys' above to copy your API secret
+    secure=True
+)
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'get_login'  # Redirect to login page if not authenticated
-
+# Redirect to login page if not authenticated
+login_manager.login_view = 'get_login'
 
 # ==================================
 # Load the trained model
@@ -42,22 +55,29 @@ model = joblib.load("trained_model.pkl")
 print("Model loaded successfully!")
 # ====================================
 
+
 class AdRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    influencer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
-    status = db.Column(db.String(20), nullable=False, default='pending')  # e.g., 'pending', 'accepted', 'rejected'
+    influencer_id = db.Column(
+        db.Integer, db.ForeignKey('user.id'), nullable=False)
+    campaign_id = db.Column(db.Integer, db.ForeignKey(
+        'campaign.id'), nullable=False)
+    # e.g., 'pending', 'accepted', 'rejected'
+    status = db.Column(db.String(20), nullable=False, default='pending')
     terms = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    influencer = db.relationship('User', foreign_keys=[influencer_id], back_populates='ad_requests')
+    influencer = db.relationship(
+        'User', foreign_keys=[influencer_id], back_populates='ad_requests')
     campaign = db.relationship('Campaign', back_populates='ad_requests')
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(200), unique=True, nullable=False)
     email = db.Column(db.String(200), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(50), nullable=False)  # Role can be 'admin', 'sponsor', or 'influencer'
+    # Role can be 'admin', 'sponsor', or 'influencer'
+    role = db.Column(db.String(50), nullable=False)
     campaigns = db.relationship('Campaign', back_populates='sponsor', lazy=True)
     ad_requests = db.relationship('AdRequest', foreign_keys=[AdRequest.influencer_id], back_populates='influencer', lazy=True)
     is_flagged = db.Column(db.Boolean, default=False)
@@ -65,6 +85,7 @@ class User(UserMixin, db.Model):
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
+
 
 class Sponsor(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -77,30 +98,30 @@ class Sponsor(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     company = db.Column(db.String(100), nullable=True)
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    company_logo = db.Column(db.String(300), nullable=True)
+    bio = db.Column(db.String(200), nullable=True)
     user = db.relationship('User', backref=db.backref('sponsor', uselist=False))
     campaign_goals = db.Column(db.Text, nullable=True)
-    
-    
+
 
 class Influencer(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(200), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), nullable=False)
     platform = db.Column(db.String(100), nullable=True)
     niche = db.Column(db.String(200), nullable=False)
     reach = db.Column(db.Integer, nullable=False)
     user = db.relationship('User', backref=db.backref('influencer', uselist=False))
     followers = db.Column(db.Integer, nullable=False)
     engagement_rate = db.Column(db.Float, nullable=False)
-    location = db.Column(db.String(100), nullable=True)
-    instagram = db.Column(db.String(100), nullable=True)
-    youtube = db.Column(db.String(100), nullable=True)
-    profile_photo = db.Column(db.String(200), nullable=True)
-
-
-
+    # Link to profile photo
+    profile_photo = db.Column(db.String(300), nullable=True)
+    location = db.Column(db.String(200), nullable=True)
+    instagram = db.Column(db.String(200), nullable=True)
+    youtube = db.Column(db.String(200), nullable=True)
+    content_types = db.Column(db.String(200), nullable=True)
 
 
 class Campaign(db.Model):
@@ -110,33 +131,41 @@ class Campaign(db.Model):
     is_private = db.Column(db.Boolean, default=False)
     budget = db.Column(db.Float, nullable=False)
     category = db.Column(db.String(50), nullable=False)
-    sponsor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    ad_requests = db.relationship('AdRequest', back_populates='campaign', lazy=True)
+    sponsor_id = db.Column(
+        db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ad_requests = db.relationship(
+        'AdRequest', back_populates='campaign', lazy=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     sponsor = db.relationship('User', back_populates='campaigns')
     is_flagged = db.Column(db.Boolean, default=False)
     flag_reason = db.Column(db.String(200), nullable=True)
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 @app.route('/')
 def home():
     return render_template('INDEX1.html')
+
 
 @app.route('/', methods=['GET'])
 @login_required
 def get_home():
     return render_template('home.html')
 
+
 @app.route('/login', methods=['GET'])
 def get_login():
     return render_template('login.html')
 
+
 @app.route('/signup', methods=['GET'])
 def get_signup():
     return render_template('signup.html')
+
 
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -144,7 +173,8 @@ def login_post():
     password = request.form['password']
     role = request.form['role']  # Get the role from the form
 
-    user = User.query.filter_by(email=email, role=role).first()  # Check user by email and role
+    # Check user by email and role
+    user = User.query.filter_by(email=email, role=role).first()
 
     if user and check_password_hash(user.password, password):
         login_user(user)
@@ -161,52 +191,8 @@ def login_post():
     flash('Invalid credentials or role, please try again.', 'danger')
     return redirect(url_for('get_login'))
 
-# @app.route('/signup', methods=['POST'])
-# def signup_post():
-#     username = request.form['username']
-#     email = request.form['email']
-#     password = request.form['password']
-#     role = request.form.get('role', 'influencer')  # Default to 'influencer' if not provided
 
-#     if User.query.filter_by(email=email).first():
-#         flash('Email address already in use.', 'warning')
-#         return redirect(url_for('get_signup'))
 
-#     if User.query.filter_by(username=username).first():
-#         flash('Username already in use.', 'warning')
-#         return redirect(url_for('get_signup'))
-
-#     hashed_password = generate_password_hash(password)
-#     user = User(username=username, email=email, password=hashed_password, role=role)
-#     db.session.add(user)
-#     db.session.commit()
-
-#     if role == 'sponsor':
-#         company_name = request.form.get('company_name')
-#         individual_name = request.form.get('individual_name')
-#         industry = request.form.get('industry')
-#         budget = request.form.get('budget')
-#         sponsor = Sponsor(user_id=user.id, company_name=company_name, individual_name=individual_name, industry=industry, budget=budget)
-#         db.session.add(sponsor)
-#         db.session.commit()
-#     elif role == 'influencer':
-#         name = request.form['name']
-#         category = request.form['category']
-#         niche = request.form['niche']
-#         reach = int(request.form['reach'])
-#         influencer = Influencer(user_id=user.id, name=name, category=category, niche=niche, reach=reach)
-#         db.session.add(influencer)
-#         db.session.commit()
-
-#     login_user(user)
-#     flash('Signup successful! You are now logged in.', 'success')
-#     # Redirect based on role
-#     if role == 'admin':
-#         return redirect(url_for('admin_dashboard'))
-#     elif role == 'sponsor':
-#         return redirect(url_for('sponsor_dashboard'))
-#     elif role == 'influencer':
-#         return redirect(url_for('influencer_dashboard'))
 
 @app.route('/signup', methods=['POST'])
 def signup_post():
@@ -227,7 +213,8 @@ def signup_post():
 
     # Create and save user
     hashed_password = generate_password_hash(password)
-    user = User(username=username, email=email, password=hashed_password, role=role)
+    user = User(username=username, email=email,
+                password=hashed_password, role=role)
     db.session.add(user)
     db.session.commit()
     print("---- Form Data Received ----")
@@ -267,7 +254,8 @@ def signup_post():
             return redirect(url_for('get_signup'))
 
     elif role == 'influencer':
-        category = request.form.get('category') or request.form.get('influencer_category')
+        category = request.form.get(
+            'category') or request.form.get('influencer_category')
         niche = request.form.get('niche')
         platform = request.form.get('platform')
         audience_size = request.form.get('audience_size', '0')
@@ -312,30 +300,73 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('get_login'))
 
+
+# @app.route('/admin_dashboard')
+# @login_required
+# def admin_dashboard():
+#     if current_user.role != 'admin':
+#         flash('Access denied.', 'danger')
+#         return redirect(url_for('get_home'))
+
+#     # Querying the database for statistics
+#     active_users = User.query.count()
+#     total_campaigns = Campaign.query.count()
+#     public_campaigns = Campaign.query.filter_by(
+#         is_private=False).count()  # Corrected line
+#     private_campaigns = Campaign.query.filter_by(
+#         is_private=True).count()  # Corrected line
+#     ad_requests = AdRequest.query.all()
+#     users = User.query.all()
+#     campaigns = Campaign.query.all()
+
+#     return render_template('admin_dashboard.html',
+#                            active_users=active_users,
+#                            total_campaigns=total_campaigns,
+#                            public_campaigns=public_campaigns,
+#                            private_campaigns=private_campaigns,
+#                            ad_requests=ad_requests,
+#                            users=users,
+#                            campaigns=campaigns)
+
 @app.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
     if current_user.role != 'admin':
         flash('Access denied.', 'danger')
         return redirect(url_for('get_home'))
-    
-    # Querying the database for statistics
-    active_users = User.query.count()
-    total_campaigns = Campaign.query.count()
-    public_campaigns = Campaign.query.filter_by(is_private=False).count()  # Corrected line
-    private_campaigns = Campaign.query.filter_by(is_private=True).count()  # Corrected line
-    ad_requests = AdRequest.query.all()
+
+    # Querying the database
     users = User.query.all()
     campaigns = Campaign.query.all()
+    ad_requests = AdRequest.query.all()
 
-    return render_template('admin_dashboard.html',
-                           active_users=active_users,
-                           total_campaigns=total_campaigns,
-                           public_campaigns=public_campaigns,
-                           private_campaigns=private_campaigns,
-                           ad_requests=ad_requests,
-                           users=users,
-                           campaigns=campaigns)
+    # Stats
+    total_users = len(users)
+    active_campaigns = len([c for c in campaigns if not c.is_flagged])
+    pending_reports = len([u for u in users if u.is_flagged]) + len([c for c in campaigns if c.is_flagged])
+
+    # Extra optional stats
+    total_campaigns = len(campaigns)
+    public_campaigns = Campaign.query.filter_by(is_private=False).count()
+    private_campaigns = Campaign.query.filter_by(is_private=True).count()
+
+    # Logs (Optional if used)
+    recent_activities = ActivityLog.query.order_by(ActivityLog.timestamp.desc()).limit(10).all() if 'ActivityLog' in globals() else []
+
+    return render_template(
+        'admin_dashboard.html',
+        users=users,
+        campaigns=campaigns,
+        ad_requests=ad_requests,
+        total_users=total_users,
+        active_campaigns=active_campaigns,
+        pending_reports=pending_reports,
+        total_campaigns=total_campaigns,
+        public_campaigns=public_campaigns,
+        private_campaigns=private_campaigns,
+        recent_activities=recent_activities
+    )
+
 
 
 @app.route('/sponsor_dashboard')
@@ -344,26 +375,20 @@ def sponsor_dashboard():
     if current_user.role != 'sponsor':
         flash('Access denied.', 'danger')
         return redirect(url_for('get_home'))
-    
-    campaigns = current_user.campaigns
+
+    # Eager load campaigns and their ad_requests
+    campaigns = Campaign.query.filter_by(sponsor_id=current_user.id)\
+        .options(joinedload(Campaign.ad_requests)).all()  # Changed line
+
     # Enrich ad requests with influencer profiles
     for campaign in campaigns:
         for ad_request in campaign.ad_requests:
-            # Attach the Influencer profile to each ad_request
-            influencer_profile = Influencer.query.filter_by(user_id=ad_request.influencer_id).first()
-            ad_request.influencer_profile = influencer_profile  # Add as a dynamic attribute
+            influencer_profile = Influencer.query.filter_by(
+                user_id=ad_request.influencer_id).first()
+            ad_request.influencer_profile = influencer_profile
 
     return render_template('sponsor_dashboard.html', campaigns=campaigns)
 
-# @app.route('/influencer_dashboard')
-# @login_required
-# def influencer_dashboard():
-#     if current_user.role != 'influencer':
-#         flash('Access denied.', 'danger')
-#         return redirect(url_for('get_home'))
-    
-#     ad_requests = current_user.ad_requests
-#     return render_template('influencer_dashboard.html', ad_requests=ad_requests)
 
 @app.route('/influencer_dashboard')
 @login_required
@@ -371,28 +396,9 @@ def influencer_dashboard():
     if current_user.role != 'influencer':
         flash('Access denied.', 'danger')
         return redirect(url_for('get_home'))
-    
-    # Get influencer's ad requests and active campaign
+
     ad_requests = current_user.ad_requests
-    active_campaign = None
-    sponsor_details = None
-
-    # Find the first accepted campaign request
-    accepted_request = next((req for req in ad_requests if req.status == 'accepted'), None)
-    
-    if accepted_request:
-        active_campaign = accepted_request.campaign
-        # Get sponsor details through the campaign
-        if active_campaign and active_campaign.sponsor:
-            sponsor_details = active_campaign.sponsor.sponsor  # Assuming User->Sponsor relationship
-
-    return render_template(
-        'influencer_dashboard.html',
-        ad_requests=ad_requests,
-        campaign=active_campaign,
-        sponsor=sponsor_details,
-        current_user=current_user
-    )
+    return render_template('influencer_dashboard.html', ad_requests=ad_requests)
 
 
 @app.route('/create_campaign', methods=['GET', 'POST'])
@@ -400,32 +406,35 @@ def influencer_dashboard():
 def create_campaign():
     if request.method == 'POST':
         if not request.form.get('agree_terms'):
-            flash('You must agree to the Terms & Conditions to create a campaign.', 'danger')
+            flash(
+                'You must agree to the Terms & Conditions to create a campaign.', 'danger')
             return redirect(url_for('create_campaign'))
         title = request.form['title']
         description = request.form.get('description')
         budget = float(request.form['budget'])
         category = request.form['category']
         sponsor_id = current_user.id
-        
-        
-        campaign = Campaign(title=title, description=description, budget=budget, category=category, sponsor_id=sponsor_id)
+
+        campaign = Campaign(title=title, description=description,
+                            budget=budget, category=category, sponsor_id=sponsor_id)
         db.session.add(campaign)
         db.session.commit()
         return redirect(url_for('my_campaigns'))
     return render_template('create_campaign.html')
+
 
 @app.route('/search_influencers', methods=['GET'])
 @login_required
 def search_influencers():
     budget_str = request.args.get('budget')
     category = request.args.get('category')
-    campaign_id = request.args.get('campaign_id')  # Get campaign_id from query parameters
+    # Get campaign_id from query parameters
+    campaign_id = request.args.get('campaign_id')
     budget = None
     print(f"Budget String: {budget_str}")
     print(f"Category: {category}")
     print(f"Campaign ID: {campaign_id}")
-    
+
     if budget_str:
         try:
             budget = float(budget_str)
@@ -435,9 +444,11 @@ def search_influencers():
 
     # Adjust query to handle budget and category
     if budget is not None and category:
-        influencers = Influencer.query.filter(Influencer.reach <= budget, Influencer.category.like(f'%{category}%')).all()
+        influencers = Influencer.query.filter(
+            Influencer.reach <= budget, Influencer.category.like(f'%{category}%')).all()
     elif category:
-        influencers = Influencer.query.filter(Influencer.category.like(f'%{category}%')).all()
+        influencers = Influencer.query.filter(
+            Influencer.category.like(f'%{category}%')).all()
     elif budget is not None:
         influencers = Influencer.query.filter(Influencer.reach <= budget).all()
     else:
@@ -450,22 +461,33 @@ def search_influencers():
 @login_required
 def send_ad_request(campaign_id):
     influencer_id = request.form.get('influencer_id')
+    accepted_terms = request.form.get('accepted_terms')
+    terms_text = request.form.get('terms_text')
+
     if not influencer_id:
         flash('Influencer ID is missing from the request.', 'danger')
-        return redirect(url_for('search_influencers', campaign_id=campaign_id))
+        return redirect(url_for('search_campaigns'))
+
+    if not accepted_terms:
+        flash('You must accept the Terms & Conditions to send an ad request.', 'danger')
+        return redirect(url_for('search_campaigns'))
+
     try:
         influencer_id = int(influencer_id)
     except ValueError:
         flash('Invalid influencer ID.', 'danger')
-        return redirect(url_for('search_influencers', campaign_id=campaign_id))
-    
-    # Create a new ad request with status 'pending'
-    ad_request = AdRequest(influencer_id=influencer_id, campaign_id=campaign_id, status='pending')
+        return redirect(url_for('search_campaigns'))
+
+    ad_request = AdRequest(
+        influencer_id=influencer_id,
+        campaign_id=campaign_id,
+        status='pending',
+        terms=terms_text  # Store the terms accepted
+    )
     db.session.add(ad_request)
     db.session.commit()
     flash('Ad request sent successfully.', 'success')
-    return redirect(url_for('view_campaign', campaign_id=campaign_id))
-
+    return redirect(url_for('influencer_dashboard'))
 
 
 @app.route('/view_campaign/<int:campaign_id>', methods=['GET'])
@@ -475,7 +497,7 @@ def view_campaign(campaign_id):
     if current_user.role != 'sponsor' or campaign.sponsor_id != current_user.id:
         flash('Access denied.', 'danger')
         return redirect(url_for('get_home'))
-    
+
     # Pass the campaign ID to the template
     return render_template('view_campaign.html', campaign=campaign)
 
@@ -488,6 +510,7 @@ def my_campaigns():
         return redirect(url_for('get_home'))
     campaigns = Campaign.query.filter_by(sponsor_id=current_user.id).all()
     return render_template('my_campaigns.html', campaigns=campaigns)
+
 
 @app.route('/ad_requests', methods=['GET'])
 @login_required
@@ -545,12 +568,21 @@ def update_profile():
         if current_user.role == 'sponsor':
             sponsor = Sponsor.query.filter_by(user_id=current_user.id).first()
             if sponsor:
-                sponsor.company_name = request.form.get('company_name', sponsor.company_name)
+                new_name = request.form.get('company_name', sponsor.company_name)
+                sponsor.company_name = new_name
+                # Update User.username as well
+                user = User.query.get(current_user.id)
+                if user:
+                    user.username = new_name
+                
                 sponsor.individual_name = request.form.get('individual_name', sponsor.individual_name)
                 sponsor.industry = request.form.get('industry', sponsor.industry)
                 sponsor.budget = float(request.form.get('budget', sponsor.budget or 0))
                 sponsor.bio = request.form.get('bio', sponsor.bio)
-                # TODO: Handle file upload for company_logo if you want to store it
+                file = request.files.get('company_logo')
+                if file and file.filename:
+                    upload_result = cloudinary.uploader.upload(file)
+                    sponsor.company_logo = upload_result['secure_url']
                 db.session.commit()
                 flash('Sponsor profile updated!', 'success')
             else:
@@ -560,21 +592,33 @@ def update_profile():
         elif current_user.role == 'influencer':
             influencer = Influencer.query.filter_by(user_id=current_user.id).first()
             if influencer:
-                influencer.name = request.form.get('name', influencer.name)
+                new_name = request.form.get('name', influencer.name)
+                influencer.name = new_name
+                # Update User.username as well
+                user = User.query.get(current_user.id)
+                if user:
+                    user.username = new_name
                 influencer.category = request.form.get('category', influencer.category)
                 influencer.niche = request.form.get('niche', influencer.niche)
                 influencer.reach = int(request.form.get('reach', influencer.reach or 0))
-                influencer.engagement_rate = float(request.form.get('engagement_rate', influencer.engagement_rate or 0))
-                # Optional fields (add these columns to your model if not present)
-                influencer.location = request.form.get('location', getattr(influencer, 'location', ''))
-                influencer.instagram = request.form.get('instagram', getattr(influencer, 'instagram', ''))
-                influencer.youtube = request.form.get('youtube', getattr(influencer, 'youtube', ''))
-                # Content types: store as comma-separated string or a JSON field in your model
+                influencer.engagement_rate = float(request.form.get(
+                    'engagement_rate', influencer.engagement_rate or 0))
+                influencer.location = request.form.get('location', influencer.location)
+                influencer.instagram = request.form.get('instagram', influencer.instagram)
+                influencer.youtube = request.form.get('youtube', influencer.youtube)
+                file = request.files.get('profile_photo')
+                if file and file.filename:
+                    upload_result = cloudinary.uploader.upload(file)
+                    influencer.profile_photo = upload_result['secure_url']
+
+                # Content types: store as comma-separated string
                 content_types = request.form.getlist('content_types')
-                influencer.content_types = ','.join(content_types) if content_types else getattr(influencer, 'content_types', '')
-                # TODO: Handle file upload for profile_picture if you want to store it
+                influencer.content_types = ','.join(
+                    content_types) if content_types else influencer.content_types
+
                 db.session.commit()
                 flash('Influencer profile updated!', 'success')
+
             else:
                 flash("Influencer profile not found!", "danger")
                 return redirect(url_for('update_profile'))
@@ -589,7 +633,6 @@ def update_profile():
         influencer = Influencer.query.filter_by(user_id=current_user.id).first()
         return render_template('update_profile.html', influencer=influencer)
     return redirect(url_for('index'))
-
 
 
 @app.route('/campaign/<int:campaign_id>/ad_requests', methods=['GET'])
@@ -893,170 +936,6 @@ def my_profile():
 
 # =========================================================================
 
-
-
-
-
 if __name__ == '__main__':
     app.run(debug=True)
-
-
-
-
-
-
-
-
-
-
-
-# from flask import Flask, redirect, render_template, request, url_for, flash
-# from flask_sqlalchemy import SQLAlchemy
-# from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
-# from werkzeug.security import generate_password_hash, check_password_hash
-
-# app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
-# app.config['SECRET_KEY'] = '619619'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# db = SQLAlchemy(app)
-
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-# login_manager.login_view = 'login'
-
-
-# class User(UserMixin, db.Model):
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     username = db.Column(db.String(200), unique=True, nullable=False)
-#     email = db.Column(db.String(200), unique=True, nullable=False)
-#     password = db.Column(db.String(200), nullable=False)
-#     role = db.Column(db.String(50), nullable=False)  # 'admin', 'sponsor', 'influencer'
-#     accepted_terms = db.Column(db.Boolean, default=False, nullable=False)
-
-#     campaigns = db.relationship('Campaign', back_populates='sponsor', lazy=True)
-#     ad_requests = db.relationship('AdRequest', back_populates='influencer', lazy=True)
-
-
-# class Campaign(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     title = db.Column(db.String(100), nullable=False)
-#     budget = db.Column(db.Float, nullable=False)
-#     sponsor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     sponsor = db.relationship('User', back_populates='campaigns')
-#     transparency_policy_accepted = db.Column(db.Boolean, default=False, nullable=False)
-
-
-# class AdRequest(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     influencer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     campaign_id = db.Column(db.Integer, db.ForeignKey('campaign.id'), nullable=False)
-#     status = db.Column(db.String(20), default='pending')
-#     accepted_terms = db.Column(db.Boolean, default=False, nullable=False)
-#     influencer = db.relationship('User', foreign_keys=[influencer_id], back_populates='ad_requests')
-
-
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.get(int(user_id))
-
-
-# @app.route('/')
-# @login_required
-# def home():
-#     return render_template('home.html')
-
-
-# @app.route('/signup', methods=['POST'])
-# def signup_post():
-#     username = request.form['username']
-#     email = request.form['email']
-#     password = request.form['password']
-#     role = request.form.get('role', 'influencer')
-#     accepted_terms = request.form.get('accepted_terms') == 'on'
-
-#     if not accepted_terms:
-#         flash('You must accept the Terms & Conditions to sign up.', 'danger')
-#         return redirect(url_for('signup'))
-
-#     hashed_password = generate_password_hash(password)
-#     user = User(username=username, email=email, password=hashed_password, role=role, accepted_terms=True)
-#     db.session.add(user)
-#     db.session.commit()
-
-#     login_user(user)
-#     return redirect(url_for('home'))
-
-
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if request.method == 'POST':
-#         email = request.form['email']
-#         password = request.form['password']
-#         user = User.query.filter_by(email=email).first()
-
-#         if user and check_password_hash(user.password, password):
-#             login_user(user)
-#             return redirect(url_for('home'))
-#         else:
-#             flash('Invalid credentials, please try again.', 'danger')
-
-#     return render_template('login.html')
-
-
-# @app.route('/logout')
-# def logout():
-#     logout_user()
-#     return redirect(url_for('login'))
-
-
-# if __name__ == '__main__':
-#     with app.app_context():
-#         db.create_all()  # Ensure the database is created properly
-#     app.run(debug=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
